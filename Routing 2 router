@@ -1,0 +1,46 @@
+In this project two routers are connected with each other, ip address to pcs are auto assigned using dhcp protocol. 
+TO do the routing the following configurations is done in Route 1:
+#en 
+#config t
+#int g 0/0
+#ip address 192.168.100.1 255.255.255.0
+#no shut
+#exit
+
+#ip dhcp pool ABC
+#network 192.168.100.0 255.255.255.0
+#default-router 192.168.100.1
+#ip dhcp excluded-address 192.168.100.1
+#ip dhcp pool DEF
+#exit
+
+#int g0/0
+#ip address 10.0.0.1 255.255.255.252
+#no shut
+#exit
+#ip route 192.168.200.200.0 255.255.255.0 10.0.0.2 (target address)
+#exit
+#write memory
+
+In Router 2: 
+#en 
+# config t
+#int g 0/0
+#ip address 192.168.200.1 255.255.255.0
+#no shut
+#exit
+
+#ip dhcp pool ABC
+#network 192.168.200.0 255.255.255.0
+#default-router 192.168.200.1
+#ip dhcp excluded-address 192.168.200.1
+#ip dhcp pool DEF
+#exit
+
+#int g0/0
+#ip address 10.0.0.2 255.255.255.252
+#no shut
+#exit
+#ip route 192.168.200.100.0 255.255.255.0 10.0.0.1 (target address)
+#exit
+#write memory
