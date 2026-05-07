@@ -1,0 +1,36 @@
+This file contains CISCO packet tracer practical.
+I. Connecting two pc using Cross-over cable
+- The pc are given static ip address 10.10.10.1 & 10.10.10.2 with subnetmask of 255.255.255.0 
+- To check the connection between the pc use commannd -" ping 10.10.10.2"
+
+II. Connecting PCs with switch
+- 2960 Switch is connected with 4PC devices using Cross-over cable
+- The pc are given static ip address 10.1.1.1,  10.1.1.2, 10.1.1.3, 10.1.1.5 with subnetmask of 255.255.255.0 
+- To check the connection between the pc use commannd -" ping 10.10.10.2"
+
+III. Connecting with Router
+- 2911 router is connected with two 2960 switches along with PC devices using Cross-over cable
+- Switch 1 is connected to router gigabitEthernet 0/1 and Switch 2 as gigabitEthernet 0/2
+- The Static ip address given to pcs connected with switch 1 are 192.168.0.2 and 192.168.0.3 and Switch 2 are 192.168.10.2 and 192.168.10.3 with subnet mask of 255.255.255.0
+- Default gateway for Switch 1 pc devices is 192.168.0.1 and Switch 2 is 192.168.10.1
+- The router is configures as  
+(#exit
+#enter
+#en
+#config t
+#int g 0/1
+#ip address 192.168.0.1 255.255.255.0
+#no shut
+#exit
+#exit
+#write memory
+
+#en
+#config t
+#int g 0/2
+#ip address 192.168.10.1 255.255.255.0
+#no shut
+#exit
+#exit
+#write memory)
+- To check the connection between the pc use commannd -" ping 192.168.10.2"
