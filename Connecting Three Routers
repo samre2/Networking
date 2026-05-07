@@ -1,0 +1,70 @@
+In this project 3 routers are connected.
+To connect 3 routers the following configurations are done:
+In Router 0:
+#en
+# config t
+#int g 0/1
+#ip address 192.168.10.1 255.255.255.0
+#no shut
+#exit
+#ip dhcp pool ABC
+#network 192.168.10.0 255.255.255
+#default-router 192.168.10.1
+#ip dhcp excluded-address 192.168.10.1
+#ip dhcp pool DEF
+#exit
+#int g 0/0
+#ip address 10.10.10.1 255.255.255.252
+#no shut
+#exit
+# ip route 192.168.20.0 255.255.255.0 10.10.10.2 (router 1)
+#ip route 192.168.30.0 255.255.255.0 10.10.10.2 (rouet 2)
+#exit
+#write memory
+
+In Router 1:
+#en
+#config t
+#int g 0/1
+#ip address 192.168.20.1 255.255.255.0
+#no shut
+#exit
+#ip dhcp pool ABC
+#network 192.168.20.0 255.255.255
+#default-router 192.168.20.1
+#ip dhcp excluded-address 192.168.20.1
+#ip dhcp pool DEF
+#exit
+#int g 0/0
+#ip address 10.10.10.2 255.255.255.252
+#no shut
+#exit
+#int g 0/2
+#ip address 10.10.10.5 255.255.255.252
+#exit
+# ip route 192.168.10.0 255.255.255.0 10.10.10.1 (router 0)
+#ip route 192.168.30.0 255.255.255.0 10.10.10.6 (router 2)
+#exit
+#write memory
+
+In router 2:
+#en
+#config t
+#int g 0/1
+#ip address 192.168.30.1 255.255.255.0
+#no shut
+#exit
+#ip dhcp pool ABC
+#network 192.168.30.0 255.255.255
+#default-router 192.168.30.1
+#ip dhcp excluded-address 192.168.30.1
+#ip dhcp pool DEF
+#exit
+#int g 0/2
+#ip address 10.10.10.6 255.255.255.252
+#no shut
+#exit
+# ip route 192.168.10.0 255.255.255.0 10.10.10.5 (router 0)
+#ip route 192.168.20.0 255.255.255.0 10.10.10.5 (router 1)
+#exit
+#write memory
