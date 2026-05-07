@@ -32,5 +32,5 @@ III. Connecting with Router
 #no shut
 #exit
 #exit
-#write memory)
+#write memory
 - To check the connection between the pc use commannd -" ping 192.168.10.2"
