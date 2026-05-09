@@ -1,0 +1,73 @@
+Adding a **DNS (Domain Name System)** section to your project documentation is essential for understanding how human-readable names are translated into the IP addresses your routers use to deliver data.
+
+---
+
+## VII. Network Services: DNS Server Configuration
+
+### Conceptual Overview
+
+**DNS** is often described as the "phonebook of the internet." While routers and computers communicate using numerical IP addresses (e.g., `192.168.10.5`), humans find it easier to remember names (e.g., `www.example.com`). DNS bridged this gap by providing a distributed database of name-to-IP mappings.
+
+### The DNS Lookup Handshake
+
+When a client device attempts to access a website by its name, it performs a lookup:
+
+1. **Query:** The PC sends a request to the DNS Server asking, "What is the IP for `www.abc.com`?"
+2. **Search:** The DNS Server checks its **A Records** (Address Records) for a match.
+3. **Response:** The Server sends the IP address (e.g., `192.168.10.5`) back to the PC.
+4. **Connection:** The PC then initiates a connection directly to that IP address.
+
+---
+
+### Implementation in your Project
+
+In a multi-router environment, the DNS server is usually assigned a **Static IP** and hosted in one of the subnets.
+
+#### 1. Integration with DHCP
+
+For DNS to work automatically, the routers must tell the PCs where the DNS server is located. This is added to your existing DHCP pools:
+
+```ios
+! Example for Router 0 (Subnet 10)
+ip dhcp pool ABC
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 192.168.30.10  ! The Static IP of your DNS Server
+exit
+
+```
+
+#### 2. Server Configuration (Packet Tracer Steps)
+
+To set up the service on a Server device:
+
+* **Static IP:** Manually assign the server an IP (e.g., `192.168.30.10`).
+* **Services Tab:** Navigate to **Services** > **DNS**.
+* **Enable:** Set DNS Service to **ON**.
+* **Create Record:** * **Name:** `www.abc.com`
+* **Type:** `A Record`
+* **Address:** `192.168.10.5` (The IP of your target Web Server).
+
+
+
+---
+
+### Troubleshooting & Verification
+
+If you cannot reach a website by name but can reach it by IP, the DNS configuration is likely the cause.
+
+* **PC Verification:** Open the Command Prompt on a PC and use the `nslookup` command:
+```bash
+nslookup www.abc.com
+
+```
+
+
+This should return the IP address you configured in the server's DNS table.
+* **Web Browser Test:** Open the Web Browser on a Packet Tracer PC and type the domain name in the URL bar. If the page loads, the full path (DHCP $\rightarrow$ DNS $\rightarrow$ Static Routing) is working correctly.
+
+### Key Terms for Future Reference
+
+* **A Record:** The standard record that maps a domain name to an IPv4 address.
+* **Root Server:** The top level of the DNS hierarchy.
+* **Recursive Resolver:** The server (usually your router or ISP) that does the hard work of looking up the address for you.
