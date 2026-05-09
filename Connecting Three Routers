@@ -1,70 +1,130 @@
-In this project 3 routers are connected.
-To connect 3 routers the following configurations are done:
-In Router 0:
-#en
-# config t
-#int g 0/1
-#ip address 192.168.10.1 255.255.255.0
-#no shut
-#exit
-#ip dhcp pool ABC
-#network 192.168.10.0 255.255.255
-#default-router 192.168.10.1
-#ip dhcp excluded-address 192.168.10.1
-#ip dhcp pool DEF
-#exit
-#int g 0/0
-#ip address 10.10.10.1 255.255.255.252
-#no shut
-#exit
-# ip route 192.168.20.0 255.255.255.0 10.10.10.2 (router 1)
-#ip route 192.168.30.0 255.255.255.0 10.10.10.2 (rouet 2)
-#exit
-#write memory
+This project involves a **Multi-Router Topology** using three routers to connect three distinct local networks. It utilizes **Static Routing** to define hop-by-hop paths and **DHCP** for automated local address management.
 
-In Router 1:
-#en
-#config t
-#int g 0/1
-#ip address 192.168.20.1 255.255.255.0
-#no shut
-#exit
-#ip dhcp pool ABC
-#network 192.168.20.0 255.255.255
-#default-router 192.168.20.1
-#ip dhcp excluded-address 192.168.20.1
-#ip dhcp pool DEF
-#exit
-#int g 0/0
-#ip address 10.10.10.2 255.255.255.252
-#no shut
-#exit
-#int g 0/2
-#ip address 10.10.10.5 255.255.255.252
-#exit
-# ip route 192.168.10.0 255.255.255.0 10.10.10.1 (router 0)
-#ip route 192.168.30.0 255.255.255.0 10.10.10.6 (router 2)
-#exit
-#write memory
+---
 
-In router 2:
-#en
-#config t
-#int g 0/1
-#ip address 192.168.30.1 255.255.255.0
-#no shut
-#exit
-#ip dhcp pool ABC
-#network 192.168.30.0 255.255.255
-#default-router 192.168.30.1
-#ip dhcp excluded-address 192.168.30.1
-#ip dhcp pool DEF
-#exit
-#int g 0/2
-#ip address 10.10.10.6 255.255.255.252
-#no shut
-#exit
-# ip route 192.168.10.0 255.255.255.0 10.10.10.5 (router 0)
-#ip route 192.168.20.0 255.255.255.0 10.10.10.5 (router 1)
-#exit
-#write memory
+## VI. Triple Router Topology with Static Routing
+
+### Network Architecture
+
+In this setup, Router 1 acts as a central "hub" connecting Router 0 and Router 2.
+
+* **Link A (R0 to R1):** 10.10.10.0/30 network.
+
+
+* **Link B (R1 to R2):** 10.10.10.4/30 network.
+
+
+* **Subnets:** Each router manages a unique local subnet (192.168.10.0, .20.0, and .30.0).
+
+
+
+---
+
+### Configuration Documentation
+
+#### Router 0 (Network 192.168.10.0)
+
+Router 0 is configured with a gateway for its local PCs and a serial link to Router 1. To reach the other two networks, it must pass all traffic to Router 1’s interface (10.10.10.2).
+
+```ios
+! Local Gateway and DHCP
+interface g 0/1
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+exit
+
+ip dhcp pool ABC
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ ip dhcp excluded-address 192.168.10.1
+exit
+
+! Link to Router 1
+interface g 0/0
+ ip address 10.10.10.1 255.255.255.252
+ no shutdown
+exit
+
+! Static Routes (Pointing to Router 1)
+ip route 192.168.20.0 255.255.255.0 10.10.10.2
+ip route 192.168.30.0 255.255.255.0 10.10.10.2
+
+```
+
+---
+
+#### Router 1 (Network 192.168.20.0)
+
+Router 1 serves as the intermediate node. It has two "next-hop" directions: one toward Router 0 (10.10.10.1) and one toward Router 2 (10.10.10.6).
+
+```ios
+! Local Gateway and DHCP
+interface g 0/1
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+exit
+
+ip dhcp pool ABC
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.1
+ ip dhcp excluded-address 192.168.20.1
+exit
+
+! Connections to R0 and R2
+interface g 0/0
+ ip address 10.10.10.2 255.255.255.252
+ no shutdown
+exit
+interface g 0/2
+ ip address 10.10.10.5 255.255.255.252
+ no shutdown
+exit
+
+! Static Routes
+ip route 192.168.10.0 255.255.255.0 10.10.10.1
+ip route 192.168.30.0 255.255.255.0 10.10.10.6
+
+```
+
+---
+
+#### Router 2 (Network 192.168.30.0)
+
+Router 2 manages the third subnet. Since it is connected only to Router 1, both remote routes (for 192.168.10.0 and .20.0) point to Router 1’s IP (10.10.10.5).
+
+```ios
+! Local Gateway and DHCP
+interface g 0/1
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+exit
+
+ip dhcp pool ABC
+ network 192.168.30.0 255.255.255.0
+ default-router 192.168.30.1
+ ip dhcp excluded-address 192.168.30.1
+exit
+
+! Link to Router 1
+interface g 0/2
+ ip address 10.10.10.6 255.255.255.252
+ no shutdown
+exit
+
+! Static Routes (Pointing to Router 1)
+ip route 192.168.10.0 255.255.255.0 10.10.10.5
+ip route 192.168.20.0 255.255.255.0 10.10.10.5
+
+```
+
+---
+
+### Key Concepts for Future Reference
+
+* **Next-Hop Logic:** In static routing, the router doesn't need to know the final destination's physical location; it only needs to know the address of the next router in the chain.
+
+
+* **DHCP Pools:** Even if multiple routers use the same pool name (e.g., "ABC"), they only serve the devices directly connected to their own local `g 0/1` interface.
+
+
+* **Subnetting (/30):** The `255.255.255.252` mask is used for inter-router links because it provides exactly two usable IPs, which perfectly connects two router ports without wasting address space.
