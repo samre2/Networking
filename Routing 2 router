@@ -1,46 +1,124 @@
-In this project two routers are connected with each other, ip address to pcs are auto assigned using dhcp protocol. 
-TO do the routing the following configurations is done in Route 1:
-#en 
-#config t
-#int g 0/0
-#ip address 192.168.100.1 255.255.255.0
-#no shut
-#exit
+This project demonstrates **Inter-Router Static Routing** combined with **Dynamic Host Configuration Protocol (DHCP)** to automate network addressing across two separate geographical or logical locations.
 
-#ip dhcp pool ABC
-#network 192.168.100.0 255.255.255.0
-#default-router 192.168.100.1
-#ip dhcp excluded-address 192.168.100.1
-#ip dhcp pool DEF
-#exit
+## V. Advanced Routing and DHCP Automation
 
-#int g0/0
-#ip address 10.0.0.1 255.255.255.252
-#no shut
-#exit
-#ip route 192.168.200.200.0 255.255.255.0 10.0.0.2 (target address)
-#exit
-#write memory
+### Objective
 
-In Router 2: 
-#en 
-# config t
-#int g 0/0
-#ip address 192.168.200.1 255.255.255.0
-#no shut
-#exit
+To connect two independent networks (managed by Router 1 and Router 2) and ensure that devices in both networks can communicate while receiving their IP configurations automatically.
 
-#ip dhcp pool ABC
-#network 192.168.200.0 255.255.255.0
-#default-router 192.168.200.1
-#ip dhcp excluded-address 192.168.200.1
-#ip dhcp pool DEF
-#exit
+### 1. The DHCP Framework
 
-#int g0/0
-#ip address 10.0.0.2 255.255.255.252
-#no shut
-#exit
-#ip route 192.168.200.100.0 255.255.255.0 10.0.0.1 (target address)
-#exit
-#write memory
+By configuring the router as a DHCP server, you eliminate the need for manual IP entry on every PC.
+
+* **Automation:** When a new device joins the switch, it broadcasts a "Discovery" message.
+
+
+* **Exclusion:** We use `ip dhcp excluded-address` to ensure the router does not assign its own interface IP to a client, which would cause a critical IP conflict.
+
+
+
+### 2. Static Routing Logic
+
+Routers only know about networks they are directly connected to. To reach a "Remote Network," we must tell the router exactly where to send the data packet using a **Static Route**.
+
+* **Network Path:** Router 1 needs to know that to reach the `192.168.200.0` network, it must send traffic to the "Next Hop" IP address of Router 2 (`10.0.0.2`).
+
+
+
+---
+
+### Configuration Breakdown
+
+#### Router 1: Local LAN & Path to Router 2
+
+| Interface/Feature | IP Address | Purpose |
+| --- | --- | --- |
+| **LAN Gateway** | 192.168.100.1 | Acts as the exit point for local PCs.
+
+ |
+| **Serial/Link** | 10.0.0.1 | The point-to-point connection to Router 2.
+
+ |
+| **DHCP Pool ABC** | 192.168.100.0/24 | The range of IPs available for local users.
+
+ |
+
+**CLI Implementation:**
+
+```ios
+! Configure Local LAN
+interface g0/0
+ ip address 192.168.100.1 255.255.255.0
+ no shutdown
+exit
+
+! Setup DHCP Services
+ip dhcp excluded-address 192.168.100.1
+ip dhcp pool ABC
+ network 192.168.100.0 255.255.255.0
+ default-router 192.168.100.1
+exit
+
+! Static Route to Reach Router 2's Network
+! Syntax: ip route [Remote_Network] [Mask] [Next_Hop_IP]
+ip route 192.168.200.0 255.255.255.0 10.0.0.2
+
+```
+
+---
+
+#### Router 2: Local LAN & Path to Router 1
+
+| Interface/Feature | IP Address | Purpose |
+| --- | --- | --- |
+| **LAN Gateway** | 192.168.200.1 | Gateway for Subnet 200.
+
+ |
+| **Serial/Link** | 10.0.0.2 | Link back to Router 1.
+
+ |
+| **DHCP Pool DEF** | 192.168.200.0/24 | Auto-assignment for Subnet 200.
+
+ |
+
+**CLI Implementation:**
+
+```ios
+! Configure Local LAN
+interface g0/0
+ ip address 192.168.200.1 255.255.255.0
+ no shutdown
+exit
+
+! Setup DHCP Services
+ip dhcp excluded-address 192.168.200.1
+ip dhcp pool DEF
+ network 192.168.200.0 255.255.255.0
+ default-router 192.168.200.1
+exit
+
+! Static Route to Reach Router 1's Network
+ip route 192.168.100.0 255.255.255.0 10.0.0.1
+
+```
+
+---
+
+### Verification and Future Reference
+
+To ensure the setup is functioning correctly, follow these steps in Packet Tracer:
+
+1. **Check IP Assignment:** Click on a PC in Network 100 $\rightarrow$ Desktop $\rightarrow$ IP Configuration. Ensure it has received an IP like `192.168.100.2` via DHCP.
+
+
+2. **Verify Routing Table:** On either router, type `show ip route`. You should see an entry marked with an **'S'** (Static) indicating the path to the other subnet.
+
+
+3. **End-to-End Ping:** From a PC in Network 100, ping a PC in Network 200:
+`ping 192.168.200.2`.
+
+
+
+> **Technical Tip:** Ensure your inter-router link (the `10.0.0.x` network) uses the correct subnet mask `255.255.255.252` (a /30 mask). This is a "best practice" for point-to-point links because it only allows for 2 usable IP addresses, preventing address waste.
+> 
+>
