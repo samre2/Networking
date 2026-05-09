@@ -1,36 +1,134 @@
-This file contains CISCO packet tracer practical.
-I. Connecting two pc using Cross-over cable
-- The pc are given static ip address 10.10.10.1 & 10.10.10.2 with subnetmask of 255.255.255.0 
-- To check the connection between the pc use commannd -" ping 10.10.10.2"
+# Network Configuration Lab: Cisco Packet Tracer
 
-II. Connecting PCs with switch
-- 2960 Switch is connected with 4PC devices using Cross-over cable
-- The pc are given static ip address 10.1.1.1,  10.1.1.2, 10.1.1.3, 10.1.1.5 with subnetmask of 255.255.255.0 
-- To check the connection between the pc use commannd -" ping 10.10.10.2"
+This repository contains the documentation and configuration steps for three fundamental networking practicals conducted in Cisco Packet Tracer.
 
-III. Connecting with Router
-- 2911 router is connected with two 2960 switches along with PC devices using Cross-over cable
-- Switch 1 is connected to router gigabitEthernet 0/1 and Switch 2 as gigabitEthernet 0/2
-- The Static ip address given to pcs connected with switch 1 are 192.168.0.2 and 192.168.0.3 and Switch 2 are 192.168.10.2 and 192.168.10.3 with subnet mask of 255.255.255.0
-- Default gateway for Switch 1 pc devices is 192.168.0.1 and Switch 2 is 192.168.10.1
-- The router is configures as  
-(#exit
-#enter
-#en
-#config t
-#int g 0/1
-#ip address 192.168.0.1 255.255.255.0
-#no shut
-#exit
-#exit
-#write memory
+## I. Peer-to-Peer Communication
 
-#en
-#config t
-#int g 0/2
-#ip address 192.168.10.1 255.255.255.0
-#no shut
-#exit
-#exit
-#write memory)
-- To check the connection between the pc use commannd -" ping 192.168.10.2"
+**Objective:** Establishing a direct link between two workstations using physical media and manual address assignment.
+
+### Hardware & Connectivity
+
+* **Media:** Ethernet Crossover Cable.
+
+
+* **Nodes:** 2 x Generic Host PCs.
+
+
+
+### Configuration Parameters
+
+| Device ID | IPv4 Address | Subnet Mask |
+| --- | --- | --- |
+| PC-A | 10.10.10.1 | 255.255.255.0 |
+| PC-B | 10.10.10.2 | 255.255.255.0 |
+
+> 
+
+### Connectivity Test
+
+To verify the connection, execute the following command from the PC-A terminal:
+
+```bash
+ping 10.10.10.2
+
+```
+
+---
+
+## II. Centralized Switching (LAN)
+
+**Objective:** Constructing a Local Area Network (LAN) utilizing a centralized Layer 2 switch to facilitate multi-node communication.
+
+### Topology Components
+
+* **Switching Fabric:** Cisco Catalyst 2960 Series.
+
+
+* **Nodes:** 4 x Generic Host PCs.
+
+
+* **Connectivity:** Cross-over cables (Note: Standard practice usually utilizes Straight-through cables for PC-to-Switch).
+
+
+
+### Addressing Table
+
+| Host Name | Static IP Address | Subnet Mask |
+| --- | --- | --- |
+| PC-1 | 10.1.1.1 | 255.255.255.0 |
+| PC-2 | 10.1.1.2 | 255.255.255.0 |
+| PC-3 | 10.1.1.3 | 255.255.255.0 |
+| PC-4 | 10.1.1.5 | 255.255.255.0 |
+
+> 
+
+---
+
+## III. Inter-Subnet Routing Configuration
+
+**Objective:** Utilizing a Layer 3 Router to bridge two distinct logical subnets, enabling cross-network data flow via Gateway interfaces.
+
+### Network Infrastructure
+
+* **Router:** Cisco 2911 Integrated Services Router (ISR).
+
+
+* **Switching:** 2 x Cisco 2960 Switches.
+
+
+* **Subnets:**
+* **Subnet A:** 192.168.0.0/24 (Gateway: Gi0/1).
+
+
+* **Subnet B:** 192.168.10.0/24 (Gateway: Gi0/2).
+
+
+
+
+
+### Device Configurations
+
+| Subnet | Host | IP Address | Default Gateway |
+| --- | --- | --- | --- |
+| **192.168.0.x** | PC-S1-A | 192.168.0.2 | 192.168.0.1 |
+|  | PC-S1-B | 192.168.0.3 | 192.168.0.1 |
+| **192.168.10.x** | PC-S2-A | 192.168.10.2 | 192.168.10.1 |
+|  | PC-S2-B | 192.168.10.3 | 192.168.10.1 |
+
+> 
+
+### Router CLI Implementation
+
+```ios
+! Accessing Privilege Mode and Configuration
+Router> enable
+Router# configure terminal
+
+! Configuring GigabitEthernet 0/1 (Subnet A)
+Router(config)# interface g0/1
+Router(config-if)# ip address 192.168.0.1 255.255.255.0
+Router(config-if)# no shutdown
+Router(config-if)# exit
+
+! Configuring GigabitEthernet 0/2 (Subnet B)
+Router(config)# interface g0/2
+Router(config-if)# ip address 192.168.10.1 255.255.255.0
+Router(config-if)# no shutdown
+Router(config-if)# exit
+
+! Saving Configuration to NVRAM
+Router(config)# exit
+Router# write memory
+
+```
+
+### Cross-Network Verification
+
+Test reachability from a host in Subnet A to a host in Subnet B:
+
+```bash
+ping 192.168.10.2
+
+```
+
+---
