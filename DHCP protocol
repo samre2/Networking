@@ -1,0 +1,119 @@
+
+
+## IV. Dynamic IP Addressing via DHCP
+
+### Conceptual Overview
+
+**DHCP** is a network management protocol used to automate the process of configuring devices on IP networks. Without DHCP, a network administrator would have to manually assign a unique IP to every laptop, smartphone, and printer on the network.
+
+### The DORA Process
+
+When a client (PC) is set to DHCP mode, it undergoes a four-step handshake with the router to obtain an address:
+
+1. **Discovery:** The client broadcasts a message to find a DHCP server.
+
+
+2. **Offer:** The router receives the request and offers an available IP address from its pool.
+
+
+3. **Request:** The client "claims" the offered address.
+
+
+4. **Acknowledgment:** The router confirms the lease and provides the subnet mask and gateway.
+
+
+
+---
+
+### Implementation & Configuration Logic
+
+In this lab, the router acts as the **DHCP Server** for two separate branches of the network.
+
+#### 1. Global Interface Setup
+
+First, the router's physical interfaces are assigned static IPs to serve as the "Default Gateway" for each subnet.
+
+* **Interface G0/1:** `192.168.100.1` (Gateway for Pool ABC).
+
+
+* **Interface G0/2:** `192.168.200.1` (Gateway for Pool DEF).
+
+
+
+#### 2. DHCP Pool Architecture
+
+A "Pool" defines the scope of addresses the router is allowed to distribute.
+
+| Configuration Command | Purpose |
+| --- | --- |
+| `ip dhcp pool [Name]` | Creates the logical container for the address scope.
+
+ |
+| `network [IP] [Mask]` | Defines the range of addresses available for the clients.
+
+ |
+| `default-router [IP]` | Tells the clients which IP to use to reach other networks (the Router's IP).
+
+ |
+| `ip dhcp excluded-address` | **Critical:** Prevents the router from giving out its own IP or other static server IPs to avoid "IP Conflicts".
+
+ |
+
+---
+
+### Router CLI Reference
+
+```ios
+! Enter Global Configuration Mode
+enable
+configure terminal
+
+! --- Physical Layer Setup ---
+interface g 0/1
+ ip address 192.168.100.1 255.255.255.0
+ no shutdown
+exit
+
+interface g 0/2
+ ip address 192.168.200.1 255.255.255.0
+ no shutdown
+exit
+
+! --- DHCP Logic: Subnet 100 ---
+ip dhcp pool ABC
+ network 192.168.100.0 255.255.255.0
+ default-router 192.168.100.1
+ exit
+! Exclude the gateway so it isn't assigned to a PC
+ip dhcp excluded-address 192.168.100.1 
+
+! --- DHCP Logic: Subnet 200 ---
+ip dhcp pool DEF
+ network 192.168.200.0 255.255.255.0
+ default-router 192.168.200.1
+ exit
+ip dhcp excluded-address 192.168.200.1
+
+! --- Commit to Memory ---
+exit
+write memory
+
+```
+
+### Troubleshooting & Verification Commands
+
+If a PC is not receiving an IP, use these commands on the **Router** to diagnose:
+
+* `show ip dhcp binding`: Displays which PCs have been assigned which IPs.
+
+
+* `show ip dhcp pool`: Shows how many addresses are left in your pools.
+
+
+* `show ip interface brief`: Verifies that the Gigabit interfaces are "Up/Up".
+
+
+
+On the **PC Command Prompt**:
+
+* `ipconfig /renew`: Forces the PC to ask the router for a new IP address.
