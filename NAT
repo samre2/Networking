@@ -1,0 +1,113 @@
+VIII. Network Address Translation (NAT)
+
+### 1. Conceptual Overview 
+
+**NAT** is a method of remapping one IP address space into another by modifying network address information in the IP header of packets while they are in transit. Its primary purpose is to allow multiple devices on a private network to share a single public IP address, effectively slowing the exhaustion of the IPv4 address space.
+
+#### Why We Use NAT:
+
+* **IP Conservation:** Allows thousands of devices to use a single public IP.
+* **Security:** Hides internal network topology from external actors.
+* **Flexibility:** Allows the internal network to change ISP providers without readdressing every host.
+
+---
+
+### 2. The Four NAT Terminologies
+
+Understanding the "Inside" and "Outside" logic is critical for troubleshooting:
+
+* **Inside Local:** The private IP address assigned to a host on the inner network (e.g., $192.168.10.5$).
+* **Inside Global:** The public IP address that represents the internal host to the outside world.
+* **Outside Global:** The public IP address of the destination host (e.g., a web server).
+* **Outside Local:** The IP address of the outside host as it appears to the internal network.
+
+---
+
+### 3. Types of NAT
+
+Depending on your project requirements, you may implement one of these three types:
+
+| Type | Function | Use Case |
+| --- | --- | --- |
+| **Static NAT** | Permanent 1-to-1 mapping. | Hosting internal servers (Web/Email). |
+| **Dynamic NAT** | 1-to-1 mapping from a pool of public IPs. | General internet access for small groups. |
+| **NAT Overload (PAT)** | Many-to-1 mapping using port numbers. | Standard home and enterprise internet access. |
+
+---
+
+### 4. Implementation Steps (CLI Reference)
+
+In Packet Tracer, configuring NAT (specifically **PAT/Overload**) follows a strict three-step logic:
+
+#### Step A: Designate Interfaces
+
+You must tell the router which "side" is the private LAN and which is the public Internet.
+
+```ios
+Router(config)# interface g0/1
+Router(config-if)# ip nat inside
+Router(config-if)# exit
+
+Router(config)# interface g0/0
+Router(config-if)# ip nat outside
+Router(config-if)# exit
+
+```
+
+#### Step B: Identify Local Traffic
+
+Create an Access Control List (ACL) to define which internal devices are allowed to "go out" through NAT.
+
+```ios
+! Permit the entire 192.168.10.0/24 subnet
+Router(config)# access-list 1 permit 192.168.10.0 0.0.0.255
+
+```
+
+#### Step C: Enable Translation (Overload)
+
+Link the ACL to the external (Outside) interface.
+
+```ios
+! Translates anything in ACL 1 to the IP address on G0/0
+Router(config)# ip nat inside source list 1 interface g0/0 overload
+
+```
+Router CLI Configuration
+---
+! Enter Configuration Mode
+enable
+configure terminal
+
+! --- Step 1: Define Inside and Outside Interfaces ---
+interface g0/1
+ ip nat inside
+exit
+
+interface g0/0
+ ip nat outside
+exit
+
+! --- Step 2: Create an ACL to match internal traffic ---
+! Permits all traffic from the 192.168.10.0 subnet
+access-list 1 permit 192.168.10.0 0.0.0.255
+
+! --- Step 3: Configure NAT Overload (PAT) ---
+! Translates traffic matching ACL 1 to the IP on G0/0
+ip nat inside source list 1 interface g0/0 overload
+
+! --- Step 4: Finalize ---
+exit
+write memory
+
+### 5. Verification & Troubleshooting
+
+To verify that NAT is functioning and translating packets correctly, use these commands:
+
+* **`show ip nat translations`**: Displays the active NAT table. This is the best way to see the "Inside Local" to "Inside Global" mapping in real-time.
+* **`show ip nat statistics`**: Shows how many hits (translations) have occurred and identifies the inside/outside interfaces.
+* **`debug ip nat`**: (Advanced) Shows translations as they happen in the console (useful for identifying failed handshakes).
+
+### Summary for Future Reference
+
+Always remember: **NAT happens on the boundary router.** For a packet to exit the network, it must hit an interface labeled `ip nat inside` and leave through one labeled `ip nat outside`. If you forget the `overload` keyword, only one device will be able to access the internet at a time!
