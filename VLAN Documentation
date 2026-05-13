@@ -1,0 +1,154 @@
+This comprehensive documentation integrates the networking concepts and configurations for **VLANs, DNS, and NAT** within a Cisco Packet Tracer environment.
+
+---
+
+# Network Infrastructure Documentation: VLAN, DNS, and NAT
+
+## IX. Virtual Local Area Network (VLAN) Implementation
+
+VLANs segment a single physical switch into multiple logical networks to improve security and reduce broadcast traffic.
+
+### 1. Conceptual Overview
+
+A **VLAN** allows an administrator to group devices by function or department rather than physical location.
+
+* 
+**Security**: Sensitive departments like Finance can be isolated from the rest of the network.
+
+
+* 
+**Performance**: By reducing the size of broadcast domains, VLANs prevent network congestion caused by broadcast storms.
+
+
+
+### 2. Switch Configuration (CLI)
+
+The following steps create the VLAN database and assign physical ports to the logical segments.
+
+```ios
+! Accessing Global Configuration Mode
+enable
+configure terminal
+
+! Step A: Define VLAN IDs and Names
+vlan 10
+ name IT
+exit
+
+vlan 20
+ name Finance
+exit
+
+! Step B: Assign Ports to VLANs (Access Mode)
+interface range fa0/1 - 5
+ switchport mode access
+ switchport access vlan 10
+exit
+
+interface range fa0/6 - 10
+ switchport mode access
+ switchport access vlan 20
+exit
+
+! Step C: Configure Trunk Links (Multi-switch communication)
+interface g0/1
+ switchport mode trunk
+
+```
+
+---
+
+## X. Domain Name System (DNS) Services
+
+DNS translates human-readable domain names into the numerical IP addresses used by routers.
+
+### 1. Conceptual Overview
+
+DNS is essentially the "phonebook" of the network. When a user enters a URL, the PC queries the DNS server to find the destination IP.
+
+* 
+**A Record**: Maps a domain name (e.g., `www.abc.com`) to an IPv4 address.
+
+
+* 
+**Automation**: DHCP pools should be configured to provide the DNS server IP to clients automatically.
+
+
+
+### 2. DNS Integration and Server Setup
+
+To implement DNS, the server must have a **Static IP**, and the routers must point clients toward that IP.
+
+**Router DHCP Update:**
+
+```ios
+ip dhcp pool ABC
+ dns-server 192.168.30.10  ! Directs clients to the DNS Server
+
+```
+
+---
+
+## XI. Network Address Translation (NAT)
+
+NAT allows a private network to access the public internet by translating private (non-routable) IPs into a single public IP address.
+
+### 1. Conceptual Overview
+
+NAT is critical for conserving IPv4 address space and adding a layer of security by hiding internal topologies.
+
+* 
+**Inside Local**: The private IP assigned to a local device.
+
+
+* 
+**Inside Global**: The public IP representing the network to the internet.
+
+
+* 
+**PAT (Overload)**: Maps multiple private IPs to one public IP using unique port numbers.
+
+
+
+### 2. Router Configuration (CLI)
+
+The router must identify which interfaces are "Inside" (Private) and "Outside" (Public).
+
+```ios
+! Step A: Designate NAT Interfaces
+interface g0/1
+ ip nat inside  ! LAN Side
+exit
+
+interface g0/0
+ ip nat outside ! ISP Side
+exit
+
+! Step B: Define Permitted Traffic (ACL)
+access-list 1 permit 192.168.10.0 0.0.0.255
+
+! Step C: Enable PAT (Overload)
+ip nat inside source list 1 interface g0/0 overload
+
+```
+
+---
+
+## Verification Commands for Future Reference
+
+| Service | Verification Command | Purpose |
+| --- | --- | --- |
+| **VLAN** | `show vlan brief` | Lists all VLANs and assigned ports.
+
+ |
+| **Trunk** | `show interfaces trunk` | Confirms active trunk links between switches.
+
+ |
+| **DNS** | `nslookup [domain]` | (PC Level) Verifies name resolution to IP.
+
+ |
+| **NAT** | `show ip nat translations` | Displays active private-to-public mappings.
+
+ |
+
+**End of Technical Documentation**
