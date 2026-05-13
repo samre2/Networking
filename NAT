@@ -73,8 +73,32 @@ Link the ACL to the external (Outside) interface.
 Router(config)# ip nat inside source list 1 interface g0/0 overload
 
 ```
-
+Router CLI Configuration
 ---
+! Enter Configuration Mode
+enable
+configure terminal
+
+! --- Step 1: Define Inside and Outside Interfaces ---
+interface g0/1
+ ip nat inside
+exit
+
+interface g0/0
+ ip nat outside
+exit
+
+! --- Step 2: Create an ACL to match internal traffic ---
+! Permits all traffic from the 192.168.10.0 subnet
+access-list 1 permit 192.168.10.0 0.0.0.255
+
+! --- Step 3: Configure NAT Overload (PAT) ---
+! Translates traffic matching ACL 1 to the IP on G0/0
+ip nat inside source list 1 interface g0/0 overload
+
+! --- Step 4: Finalize ---
+exit
+write memory
 
 ### 5. Verification & Troubleshooting
 
